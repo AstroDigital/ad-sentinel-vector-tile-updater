@@ -1,0 +1,5 @@
+node_modules
+payload.json
+iron.json
+updater/*.geojson
+npm-debug.log
