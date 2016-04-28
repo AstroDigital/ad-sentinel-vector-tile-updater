@@ -1,9 +1,10 @@
 {
     "esURL": "http://esurl.com",
     "logLevel": "info",
-    "groupings": [
-        {"pattern": "2016", "mapboxAccount": "astrodigital", "mapboxID": "sentinel_meta_2016"},
-        {"pattern": "2015", "mapboxAccount": "astrodigital", "mapboxID": "sentinel_meta_2015"}
+    "types": [
+        {"baseName": "sentinel_meta_test", "startYear": 2015, "type": "sentinel2"},
+        {"baseName": "landsat_meta_test", "startYear": 2013, "type": "landsat8"}
     ],
+    "mapboxAccount": "account_name",
     "mapboxToken": "write_token"
 }
