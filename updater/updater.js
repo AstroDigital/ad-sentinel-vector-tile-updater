@@ -109,14 +109,17 @@ export function doTheThing () {
       let geometry;
       let scene;
       let date;
+      let year;
       if (type === 'landsat8') {
         geometry = d.data_geometry;
         scene = `${d.sceneID.substring(1, 2)}${d.sceneID.substring(18, 19)}${d.sceneID.substring(20, 21)}${zp(d.path, 3)}${zp(d.row, 3)}`;
         date = Number(d.sceneID.substring(13, 16));
+        year = d.sceneID.substring(11, 13);
       } else if (type === 'sentinel2') {
         geometry = d.tile_geometry;
         scene = `${zp(d.utm_zone, 2)}${d.latitude_band}${d.grid_square}${d.path.slice(-1)}`;
         date = Number(moment(d.date, 'YYYY-MM-DD').format('DDD'));
+        year = d.date.substring(2, 4);
       }
 
       const feature = {
@@ -125,7 +128,8 @@ export function doTheThing () {
         properties: {
           c: d.cloud_coverage,
           d: date,
-          s: scene
+          s: scene,
+          y: year
         }
       };
 
@@ -148,6 +152,13 @@ export function doTheThing () {
         if (crosses) {
           f.geometry.coordinates[0] = warpArray(coordArray);
         }
+        // TODO: remove after testing
+        f.geometry.coordinates[0].forEach((c) => {
+          if (c[0] >= 180 || c[0] <= -180) {
+            console.log('Out of bounds!');
+            console.log(JSON.stringify(f));
+          }
+        });
       }
       winston.verbose('World wrapping complete');
       cb(geojson);
@@ -157,18 +168,14 @@ export function doTheThing () {
   // Build up task groups
   let groupings = [];
   types.forEach((t) => {
-    // Starting from Jan 1 of the start year, build up an array of dates until
-    // a month from now in the future
+    // Starting from Jan 1 of the start year and go to end of month of current
+    // month.
     let date = moment([t.startYear, 0, 1]);
-    const endDate = moment().add(1, 'M');
-    while (date < endDate) {
-      groupings.push({
-        pattern: `[${date.startOf('month').format('YYYY-MM-DD')} TO ${date.endOf('month').format('YYYY-MM-DD')}]`,
-        mapboxID: `${t.baseName}_${date.format('YYYY_MM')}`,
-        type: t.type
-      });
-      date = date.add(1, 'M');
-    }
+    groupings.push({
+      pattern: `[${date.startOf('month').format('YYYY-MM-DD')} TO ${moment().endOf('month').format('YYYY-MM-DD')}]`,
+      mapboxID: t.baseName,
+      type: t.type
+    });
   });
   let groups = groupings.map((g) => {
     return function (done) {
