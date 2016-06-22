@@ -6,7 +6,7 @@
 
 import elasticsearch from 'elasticsearch';
 import iron_worker from 'iron_worker'; // eslint-disable-line camelcase
-import { crossTest, warpArray } from './warp.js'; // eslint-disable-line
+import { crossTest, warpArray } from './warp.js';
 import { parallelLimit } from 'async';
 import { writeFileSync } from 'fs';
 import upload from 'mapbox-upload';
@@ -150,9 +150,7 @@ export function doTheThing () {
         const coordArray = f.geometry.coordinates[0];
         const crosses = crossTest(coordArray);
         if (crosses) {
-          // TODO: temporary, delete anything crossing
-          delete geojson.features[f];
-          // f.geometry.coordinates[0] = warpArray(coordArray);
+          f.geometry.coordinates[0] = warpArray(coordArray);
         }
         // TODO: remove after testing
         f.geometry.coordinates[0].forEach((c) => {
